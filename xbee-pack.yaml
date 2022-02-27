@@ -1,0 +1,45 @@
+schema-version: 1.0
+
+type: builder
+
+description: |
+  Le paquet SGML Common contient install-catalog. C'est utile pour créer et maintenir des catalogues SGML centralisés.
+
+  Programmes installés: install-catalog et sgmlwhich
+  Bibliothèques installées: Aucune
+  Fichiers installés: fichiers d'entité DocBook SGML et XML
+  Répertoires installés: /etc/sgml, /usr/share/doc/sgml-common-0.6.3 et /usr/share/sgml
+  Descriptions courtes
+    install-catalog: crée un catalogue centralisé qui maintient des références aux catalogues répandus dans l'arborescence du répertoire /usr/share/sgml
+    sgmlwhich: affiche sur la sortie standard le nom du fichier principal de configuration
+    fichiers d'entités SGML: contient les entités de caractères de base avec des entrées SDATA
+    fichiers entités XML: contient les entités de caractères de base définies par une représentation hexadécimale du numéro de caractère Unicode
+
+in:
+  version: 0.6.3
+
+dependencies:
+  - autoconf
+  - automake
+  - m4
+
+provision:
+  - url:
+      from: https://sourceware.org/ftp/docbook-tools/new-trials/SOURCES/sgml-common-{% version %}.tgz
+      todir: "{% xbeeSrc %}"
+  - url:
+      from: https://www.linuxfromscratch.org/patches/blfs/svn/sgml-common-{% version %}-manpage-1.patch
+      todir: "{% xbeeSrc %}"
+      unpack: false
+
+build:
+  - shell:
+      cmds:
+        - patch -Np1 -i ../sgml-common-{% version %}-manpage-1.patch
+        - autoreconf -f -i
+        - ./configure --prefix=/usr --sysconfdir=/etc
+        - make
+        - make  docdir=/usr/share/doc install DESTDIR={% xbeeOut %}
+#        - install-catalog --add /etc/sgml/sgml-ent.cat {% xbeeOut %}/usr/share/sgml/sgml-iso-entities-8879.1986/catalog
+#        - install-catalog --add /etc/sgml/sgml-docbook.cat /etc/sgml/sgml-ent.cat
+      directory: "{% xbeeSrc %}/sgml-common-{% version %}"
